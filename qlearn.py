@@ -57,9 +57,20 @@ class QLearn:
         #       just action
 
         # THE NEXT LINES NEED TO BE MODIFIED TO MATCH THE REQUIREMENTS ABOVE 
+        if random.random() < self.epsilon:
+            a = random.choice(self.actions)
+            return (a, self.getQ(state, a)) if return_q else a
+
+        q_vals = [(a, self.getQ(state, a)) for a in self.actions]
+
+        max_q = max(q for _, q in q_vals)
+        best_actions = [a for a, q in q_vals if q == max_q]
+        a_star = random.choice(best_actions)
+
+        return (a_star, max_q) if return_q else a_star
         
     
-        return self.actions[1]
+        #return self.actions[1]
 
     def learn(self, state1, action1, reward, state2):
         '''
@@ -80,4 +91,11 @@ class QLearn:
 
         # THE NEXT LINES NEED TO BE MODIFIED TO MATCH THE REQUIREMENTS ABOVE
         
-        self.q[(state1,action1)] = reward
+        current_q = self.q.get((state1, action1), 0.0)
+        future_qs = [self.q.get((state2, a), 0.0) for a in range(len(self.actions))]
+        max_future_q = max(future_qs) if future_qs else 0.0
+
+        updated_q = current_q + self.alpha * ((reward + self.gamma * max_future_q) - current_q)
+
+        self.q[(state1, action1)] = updated_q
+    
